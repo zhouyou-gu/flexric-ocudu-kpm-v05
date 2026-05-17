@@ -95,6 +95,7 @@ add_executable(ocudu_rc_du_prb_control
 			${CMAKE_SOURCE_DIR}/src/util/alg_ds/alg/defer.c
 			)
 set_target_properties(ocudu_rc_du_prb_control PROPERTIES OUTPUT_NAME ocudu-rc-du-prb-control)
+set_target_properties(ocudu_rc_du_prb_control PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 target_include_directories(ocudu_rc_du_prb_control
 			PUBLIC
 			${OCUDU_ASN1_ROOT}/include
