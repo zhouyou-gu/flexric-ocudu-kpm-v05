@@ -23,7 +23,7 @@ ENV CCACHE_BASEDIR=/opt
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates git build-essential gcc-10 g++-10 swig cmake cmake-curses-gui \
-    ccache libsctp-dev python3 python3-dev pkg-config libconfig-dev libconfig++-dev libpcre2-dev tcpdump \
+    ccache ninja-build libsctp-dev python3 python3-dev pkg-config libconfig-dev libconfig++-dev libpcre2-dev tcpdump \
   && rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 \
@@ -55,9 +55,28 @@ RUN --mount=type=cache,target=/root/.cache/ccache \
   cd /opt/flexric \
   && mkdir -p build \
   && cd build \
-  && cmake -DE2AP_VERSION=E2AP_V3 -DSM_ENCODING_KPM=ASN -DKPM_VERSION=KPM_V5_00 -DXAPP_DB=NONE_XAPP -DUNIT_TEST=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. \
-  && make -j$(nproc) \
-  && make install \
+  && cmake -G Ninja -DE2AP_VERSION=E2AP_V3 -DSM_ENCODING_KPM=ASN -DKPM_VERSION=KPM_V5_00 -DXAPP_DB=NONE_XAPP -DUNIT_TEST=OFF -DEMU_AGENT=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. \
+  && cmake --build . --parallel $(nproc) --target \
+    nearRT-RIC \
+    xapp_oran_moni \
+    ocudu_ccc_prb_control \
+    ocudu_rc_du_prb_control \
+    kpm_sm \
+    ccc_sm \
+    rc_sm \
+    mac_sm \
+    rlc_sm \
+    pdcp_sm \
+    slice_sm \
+    tc_sm \
+    gtp_sm \
+  && mkdir -p /usr/local/bin/flexric/ric /usr/local/bin/flexric/xApp/c /usr/local/lib/flexric /usr/local/etc/flexric \
+  && cp examples/ric/nearRT-RIC /usr/local/bin/flexric/ric/nearRT-RIC \
+  && cp examples/xApp/c/monitor/xapp_oran_moni /usr/local/bin/flexric/xApp/c/xapp_oran_moni \
+  && cp examples/xApp/c/control/ocudu-ccc-prb-control /usr/local/bin/ocudu-ccc-prb-control \
+  && cp examples/xApp/c/control/ocudu-rc-du-prb-control /usr/local/bin/ocudu-rc-du-prb-control \
+  && find . -type f \( -name 'libkpm_sm.so' -o -name 'libccc_sm.so' -o -name 'librc_sm.so' -o -name 'libmac_sm.so' -o -name 'librlc_sm.so' -o -name 'libpdcp_sm.so' -o -name 'libslice_sm.so' -o -name 'libtc_sm.so' -o -name 'libgtp_sm.so' \) -exec cp {} /usr/local/lib/flexric/ \; \
+  && find /opt/flexric/conf_files -type f \( -name '*.conf' -o -name '*.json' \) -exec cp {} /usr/local/etc/flexric/ \; \
   && command -v ocudu-ccc-prb-control \
   && command -v ocudu-rc-du-prb-control \
   && ldconfig
