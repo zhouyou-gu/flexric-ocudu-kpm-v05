@@ -68,6 +68,7 @@ target_link_libraries(ocudu_ccc_prb_control
 		)
 
 # OCUDU benchmark one-shot E2SM-RC DU slice PRB quota control tool.
+enable_language(CXX)
 set(OCUDU_ASN1_ROOT "$ENV{OCUDU_ASN1_ROOT}" CACHE PATH "Path to OCUDU source subset containing generated ASN.1 C++ support")
 if(NOT OCUDU_ASN1_ROOT)
 	set(OCUDU_ASN1_ROOT "/opt/ocudu-asn1")
