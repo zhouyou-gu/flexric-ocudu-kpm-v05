@@ -98,10 +98,12 @@ bool net_pkt(const e42_iapp_t* iapp, int fd)
 static
 void consume_fd(int fd)
 {
-  assert(fd > 0);
+  if(fd <= 0)
+    return;
   uint64_t read_buf = 0;
   ssize_t const bytes = read(fd,&read_buf, sizeof(read_buf));
-  assert(bytes == sizeof(read_buf));
+  if(bytes != sizeof(read_buf))
+    return;
 }
 
 
@@ -318,4 +320,3 @@ void notify_msg_iapp(e42_iapp_t* iapp, e2ap_msg_t const* msg)
 //  sctp_info_t s = find_xapps
 //  handle_msg(iapp, msg);
 }
-

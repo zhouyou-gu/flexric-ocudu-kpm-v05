@@ -267,10 +267,12 @@ bool net_pkt(e2ap_ep_t const *ep, int fd)
 static inline
 void consume_fd(int fd)
 {
-  assert(fd > 0);
+  if(fd <= 0)
+    return;
   uint64_t read_buf = 0;
   ssize_t const bytes = read(fd,&read_buf, sizeof(read_buf));
-  assert(bytes == sizeof(read_buf));
+  if(bytes != sizeof(read_buf))
+    return;
 }
 
 /*
@@ -887,4 +889,3 @@ uint16_t fwd_ric_control_request(near_ric_t* ric, global_e2_node_id_t const* id,
 
   return ric_req_id; 
 }
-
