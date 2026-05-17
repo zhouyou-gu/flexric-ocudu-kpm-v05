@@ -77,6 +77,11 @@ RUN --mount=type=cache,target=/root/.cache/ccache \
   && cp examples/xApp/c/control/ocudu-rc-du-prb-control /usr/local/bin/ocudu-rc-du-prb-control \
   && find . -type f \( -name 'libkpm_sm.so' -o -name 'libccc_sm.so' -o -name 'librc_sm.so' -o -name 'libmac_sm.so' -o -name 'librlc_sm.so' -o -name 'libpdcp_sm.so' -o -name 'libslice_sm.so' -o -name 'libtc_sm.so' -o -name 'libgtp_sm.so' \) -exec cp {} /usr/local/lib/flexric/ \; \
   && find /opt/flexric/conf_files -type f \( -name '*.conf' -o -name '*.json' \) -exec cp {} /usr/local/etc/flexric/ \; \
+  && test -x /usr/local/bin/flexric/ric/nearRT-RIC \
+  && test -x /usr/local/bin/flexric/xApp/c/xapp_oran_moni \
+  && test -x /usr/local/bin/ocudu-ccc-prb-control \
+  && test -x /usr/local/bin/ocudu-rc-du-prb-control \
+  && for sm in kpm ccc rc mac rlc pdcp slice tc gtp; do test -f "/usr/local/lib/flexric/lib${sm}_sm.so"; done \
   && command -v ocudu-ccc-prb-control \
   && command -v ocudu-rc-du-prb-control \
   && ldconfig
@@ -129,17 +134,24 @@ manifest = {
     "rc_du_prb_control_binary": "/usr/local/bin/ocudu-rc-du-prb-control",
     "xapp_db": "NONE_XAPP",
     "ric_binary": "/usr/local/bin/flexric/ric/nearRT-RIC",
+    "xapp_search_roots": [
+        "/opt/flexric/build/examples",
+        "/usr/local/bin/flexric/xApp/c",
+    ],
     "xapp_search_root": "/opt/flexric/build/examples",
     "default_port": 36421,
 }
-root = pathlib.Path("/opt/flexric/build/examples")
 xapps = []
-for path in root.rglob("*"):
-    if path.is_file() and os.access(path, os.X_OK):
-        name = path.name.lower()
-        if ("kpm" in name and "moni" in name) or "oran_moni" in name:
-            xapps.append(str(path))
-manifest["kpm_xapp_candidates"] = sorted(xapps)
+for root_name in manifest["xapp_search_roots"]:
+    root = pathlib.Path(root_name)
+    if not root.exists():
+        continue
+    for path in root.rglob("*"):
+        if path.is_file() and os.access(path, os.X_OK):
+            name = path.name.lower()
+            if ("kpm" in name and "moni" in name) or "oran_moni" in name:
+                xapps.append(str(path))
+manifest["kpm_xapp_candidates"] = sorted(set(xapps))
 pathlib.Path("/opt/flexric-bench/manifest.json").write_text(
     json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
 )
