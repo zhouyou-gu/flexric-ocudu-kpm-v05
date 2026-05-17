@@ -50,3 +50,36 @@ target_link_libraries(xapp_oran_ctrl
 		-ldl
 		)
 
+# OCUDU benchmark one-shot E2SM-CCC PRB policy control tool.
+add_executable(ocudu_ccc_prb_control
+		ocudu_ccc_prb_control.c
+		ocudu_prb_control_common.c
+		${CMAKE_SOURCE_DIR}/src/util/alg_ds/alg/defer.c
+		)
+set_target_properties(ocudu_ccc_prb_control PROPERTIES OUTPUT_NAME ocudu-ccc-prb-control)
+target_link_libraries(ocudu_ccc_prb_control
+		PUBLIC
+		e42_xapp
+		$<TARGET_OBJECTS:e2_time_obj>
+		$<$<STREQUAL:${XAPP_DB},MYSQL_XAPP>:${LIBMYSQLCLIENT_LIBRARIES}>
+		-pthread
+		-lsctp
+		-ldl
+		)
+
+# OCUDU benchmark one-shot E2SM-RC DU slice PRB quota control tool.
+add_executable(ocudu_rc_du_prb_control
+		ocudu_rc_du_prb_control.c
+		ocudu_prb_control_common.c
+		${CMAKE_SOURCE_DIR}/src/util/alg_ds/alg/defer.c
+		)
+set_target_properties(ocudu_rc_du_prb_control PROPERTIES OUTPUT_NAME ocudu-rc-du-prb-control)
+target_link_libraries(ocudu_rc_du_prb_control
+		PUBLIC
+		e42_xapp
+		$<TARGET_OBJECTS:e2_time_obj>
+		$<$<STREQUAL:${XAPP_DB},MYSQL_XAPP>:${LIBMYSQLCLIENT_LIBRARIES}>
+		-pthread
+		-lsctp
+		-ldl
+		)

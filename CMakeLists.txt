@@ -369,6 +369,12 @@ if (SM_RC)
   install(TARGETS rc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
 endif()
 
+option(SM_CCC "Install CCC SM" ON)
+message(STATUS "Install CCC SM: ${SM_CCC}")
+if (SM_CCC)
+  install(TARGETS ccc_sm DESTINATION ${CMAKE_INSTALL_LIBDIR}/flexric)
+endif()
+
 ###
 # Install the configuration file
 ###
@@ -416,6 +422,8 @@ if (XAPP_C)
       DESTINATION ${CMAKE_INSTALL_BINDIR}/flexric/xApp/c)
   # slice ctrl
   install(TARGETS xapp_slice_moni_ctrl DESTINATION ${CMAKE_INSTALL_BINDIR}/flexric/xApp/c)
+  # OCUDU benchmark control tools
+  install(TARGETS ocudu_ccc_prb_control ocudu_rc_du_prb_control DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
 

@@ -52,6 +52,8 @@ RUN cd /opt/flexric \
   && cmake -DE2AP_VERSION=E2AP_V3 -DSM_ENCODING_KPM=ASN -DKPM_VERSION=KPM_V5_00 -DXAPP_DB=NONE_XAPP -DUNIT_TEST=OFF .. \
   && make -j$(nproc) \
   && make install \
+  && command -v ocudu-ccc-prb-control \
+  && command -v ocudu-rc-du-prb-control \
   && ldconfig
 
 RUN mkdir -p /opt/flexric-bench \
@@ -78,6 +80,8 @@ manifest = {
     "kpm_release": "KPM_V5_00",
     "kpm_asn_release": "E2SM-KPM-R003-v05.00",
     "supports_e2sm_kpm_v05": True,
+    "supports_e2sm_ccc_prb_control": True,
+    "supports_e2sm_rc_du_prb_control": True,
     "patch_level": "ocudu-kpm-v05",
     "decoder_source": "ocudu-generated-asn1-cpp",
     "kpm_indication_decode_per_syntax": "ATS_UNALIGNED_BASIC_PER",
@@ -87,6 +91,12 @@ manifest = {
         "lib/asn1/e2sm/e2sm_kpm_ies.cpp",
     ],
     "ocudu_kpm_decoder_binary": "/usr/local/bin/ocudu-kpm-v05-decode",
+    "ocudu_ccc_asn_sources": [
+        "include/ocudu/asn1/e2sm/e2sm_ccc.h",
+        "lib/asn1/e2sm/e2sm_ccc.cpp",
+    ],
+    "ccc_prb_control_binary": "/usr/local/bin/ocudu-ccc-prb-control",
+    "rc_du_prb_control_binary": "/usr/local/bin/ocudu-rc-du-prb-control",
     "xapp_db": "NONE_XAPP",
     "ric_binary": "/usr/local/bin/flexric/ric/nearRT-RIC",
     "xapp_search_root": "/opt/flexric/build/examples",

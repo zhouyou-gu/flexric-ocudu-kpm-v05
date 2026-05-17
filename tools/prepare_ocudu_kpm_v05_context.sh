@@ -12,7 +12,9 @@ BUILD_CONTEXT=${BUILD_CONTEXT:-"$FLEXRIC_SOURCE_ROOT/build/ocudu-kpm-v05-context
 
 required_paths="
 include/ocudu/asn1/e2sm/e2sm_kpm_ies.h
+include/ocudu/asn1/e2sm/e2sm_ccc.h
 lib/asn1/e2sm/e2sm_kpm_ies.cpp
+lib/asn1/e2sm/e2sm_ccc.cpp
 lib/asn1/e2sm/e2sm_common_ies.cpp
 lib/asn1/asn1_utils.cpp
 lib/support/byte_buffer.cpp
@@ -46,6 +48,7 @@ cp -a "$OCUDU_ASN1_ROOT/lib/ocudulog" "$BUILD_CONTEXT/ocudu-asn1/lib/"
 
 for source in \
   lib/asn1/e2sm/e2sm_kpm_ies.cpp \
+  lib/asn1/e2sm/e2sm_ccc.cpp \
   lib/asn1/e2sm/e2sm_common_ies.cpp \
   lib/asn1/asn1_utils.cpp \
   lib/support/byte_buffer.cpp \
