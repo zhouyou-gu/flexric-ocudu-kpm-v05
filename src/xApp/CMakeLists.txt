@@ -19,6 +19,10 @@ elseif(KPM_VERSION STREQUAL "KPM_V3")
     set(KPM_VERSION_SRC
             ../sm/kpm_sm/kpm_sm_v03.00/ie/kpm_data_ie.c
             )
+elseif(KPM_VERSION STREQUAL "KPM_V5_00")
+    set(KPM_VERSION_SRC
+            ../sm/kpm_sm/kpm_sm_v05.00/ie/kpm_data_ie.c
+            )
 else()
     message(FATAL_ERROR "Unknown KPM version")
 endif()
