@@ -35,7 +35,6 @@ if [ -n "$missing" ]; then
   exit 2
 fi
 
-rm -rf "$BUILD_CONTEXT"
 mkdir -p "$BUILD_CONTEXT/flexric" "$BUILD_CONTEXT/ocudu-asn1/lib"
 
 rsync -a --delete \
@@ -44,9 +43,9 @@ rsync -a --delete \
   --exclude .cache \
   "$FLEXRIC_SOURCE_ROOT/" "$BUILD_CONTEXT/flexric/"
 
-cp -a "$OCUDU_ASN1_ROOT/include" "$BUILD_CONTEXT/ocudu-asn1/"
-cp -a "$OCUDU_ASN1_ROOT/external" "$BUILD_CONTEXT/ocudu-asn1/"
-cp -a "$OCUDU_ASN1_ROOT/lib/ocudulog" "$BUILD_CONTEXT/ocudu-asn1/lib/"
+rsync -a --delete "$OCUDU_ASN1_ROOT/include/" "$BUILD_CONTEXT/ocudu-asn1/include/"
+rsync -a --delete "$OCUDU_ASN1_ROOT/external/" "$BUILD_CONTEXT/ocudu-asn1/external/"
+rsync -a --delete "$OCUDU_ASN1_ROOT/lib/ocudulog/" "$BUILD_CONTEXT/ocudu-asn1/lib/ocudulog/"
 
 for source in \
   lib/asn1/e2sm/e2sm_kpm_ies.cpp \
@@ -58,7 +57,7 @@ for source in \
   external/fmt/src/format.cc
 do
   mkdir -p "$BUILD_CONTEXT/ocudu-asn1/$(dirname "$source")"
-  cp "$OCUDU_ASN1_ROOT/$source" "$BUILD_CONTEXT/ocudu-asn1/$source"
+  cp -p "$OCUDU_ASN1_ROOT/$source" "$BUILD_CONTEXT/ocudu-asn1/$source"
 done
 
 python3 - "$BUILD_CONTEXT/ocudu-source.json" "$OCUDU_ASN1_ROOT" <<'PY'

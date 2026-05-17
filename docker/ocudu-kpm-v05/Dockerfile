@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM ubuntu:22.04
 
 ARG FLEXRIC_REPO="https://github.com/zhouyou-gu/flexric-ocudu-kpm-v05.git"
@@ -16,10 +17,13 @@ ENV OCUDU_REPO=${OCUDU_REPO}
 ENV OCUDU_REF=${OCUDU_REF}
 ENV OCUDU_COMMIT=${OCUDU_COMMIT}
 ENV FLEXRIC_IMAGE=${FLEXRIC_IMAGE}
+ENV CCACHE_DIR=/root/.cache/ccache
+ENV CCACHE_COMPILERCHECK=content
+ENV CCACHE_BASEDIR=/opt
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates git build-essential gcc-10 g++-10 swig cmake cmake-curses-gui \
-    libsctp-dev python3 python3-dev pkg-config libconfig-dev libconfig++-dev libpcre2-dev tcpdump \
+    ccache libsctp-dev python3 python3-dev pkg-config libconfig-dev libconfig++-dev libpcre2-dev tcpdump \
   && rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 \
@@ -28,7 +32,8 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 \
 COPY ocudu-asn1/ /opt/ocudu-asn1/
 COPY flexric/ /opt/flexric/
 
-RUN g++ -std=c++17 \
+RUN --mount=type=cache,target=/root/.cache/ccache \
+  ccache g++ -std=c++17 \
   -I/opt/ocudu-asn1/include -I/opt/ocudu-asn1/external -I/opt/ocudu-asn1/external/fmt/include \
   -I/opt/ocudu-asn1/include/ocudu/ocudulog/bundled -I/opt/ocudu-asn1/include/ocudu/ocudulog/formatters \
   -I/opt/ocudu-asn1/lib/ocudulog -I/opt/ocudu-asn1/lib/ocudulog/formatters -I/opt/ocudu-asn1/lib/ocudulog/sinks \
@@ -46,10 +51,11 @@ RUN g++ -std=c++17 \
   /opt/ocudu-asn1/lib/ocudulog/formatters/text_formatter.cpp \
   -lpthread -o /usr/local/bin/ocudu-kpm-v05-decode
 
-RUN cd /opt/flexric \
+RUN --mount=type=cache,target=/root/.cache/ccache \
+  cd /opt/flexric \
   && mkdir -p build \
   && cd build \
-  && cmake -DE2AP_VERSION=E2AP_V3 -DSM_ENCODING_KPM=ASN -DKPM_VERSION=KPM_V5_00 -DXAPP_DB=NONE_XAPP -DUNIT_TEST=OFF .. \
+  && cmake -DE2AP_VERSION=E2AP_V3 -DSM_ENCODING_KPM=ASN -DKPM_VERSION=KPM_V5_00 -DXAPP_DB=NONE_XAPP -DUNIT_TEST=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. \
   && make -j$(nproc) \
   && make install \
   && command -v ocudu-ccc-prb-control \
