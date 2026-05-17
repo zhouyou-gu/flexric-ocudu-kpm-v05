@@ -9,6 +9,13 @@ ARG OCUDU_COMMIT="unknown"
 ARG FLEXRIC_IMAGE="skillful-ran/flexric-bench:br-flexric-1a3903a7-kpm-v5-ocudu-26_04"
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV FLEXRIC_REPO=${FLEXRIC_REPO}
+ENV FLEXRIC_REF=${FLEXRIC_REF}
+ENV FLEXRIC_COMMIT=${FLEXRIC_COMMIT}
+ENV OCUDU_REPO=${OCUDU_REPO}
+ENV OCUDU_REF=${OCUDU_REF}
+ENV OCUDU_COMMIT=${OCUDU_COMMIT}
+ENV FLEXRIC_IMAGE=${FLEXRIC_IMAGE}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates git build-essential gcc-10 g++-10 swig cmake cmake-curses-gui \
