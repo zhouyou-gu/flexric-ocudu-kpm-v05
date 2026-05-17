@@ -190,3 +190,13 @@ sm_ans_xapp_t control_sm_xapp_api(global_e2_node_id_t* id, uint32_t ran_func_id,
   return control_sm_sync_xapp(xapp, id, ran_func_id, wr);
 }
 
+sm_ans_xapp_t control_sm_raw_xapp_api(global_e2_node_id_t* id, uint32_t ran_func_id, byte_array_t hdr, byte_array_t msg)
+{
+  assert(xapp != NULL);
+  assert(id != NULL);
+  assert(ran_func_id == SM_CCC_ID || ran_func_id == SM_RC_ID);
+  assert(hdr.buf != NULL && hdr.len > 0);
+  assert(msg.buf != NULL && msg.len > 0);
+
+  return control_sm_raw_sync_xapp(xapp, id, ran_func_id, hdr, msg);
+}

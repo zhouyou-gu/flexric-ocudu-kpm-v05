@@ -68,15 +68,46 @@ target_link_libraries(ocudu_ccc_prb_control
 		)
 
 # OCUDU benchmark one-shot E2SM-RC DU slice PRB quota control tool.
+set(OCUDU_ASN1_ROOT "$ENV{OCUDU_ASN1_ROOT}" CACHE PATH "Path to OCUDU source subset containing generated ASN.1 C++ support")
+if(NOT OCUDU_ASN1_ROOT)
+	set(OCUDU_ASN1_ROOT "/opt/ocudu-asn1")
+endif()
+if(NOT EXISTS "${OCUDU_ASN1_ROOT}/include/ocudu/asn1/e2sm/e2sm_rc_ies.h")
+	message(FATAL_ERROR "OCUDU_ASN1_ROOT must point to OCUDU generated ASN.1 sources for the RC DU control tool")
+endif()
+
 add_executable(ocudu_rc_du_prb_control
-		ocudu_rc_du_prb_control.c
-		ocudu_prb_control_common.c
-		${CMAKE_SOURCE_DIR}/src/util/alg_ds/alg/defer.c
-		)
+			ocudu_rc_du_prb_control.cpp
+			ocudu_prb_control_common.c
+			${OCUDU_ASN1_ROOT}/lib/asn1/e2sm/e2sm_kpm_ies.cpp
+			${OCUDU_ASN1_ROOT}/lib/asn1/e2sm/e2sm_rc_ies.cpp
+			${OCUDU_ASN1_ROOT}/lib/asn1/e2sm/e2sm_common_ies.cpp
+			${OCUDU_ASN1_ROOT}/lib/asn1/asn1_utils.cpp
+			${OCUDU_ASN1_ROOT}/lib/support/byte_buffer.cpp
+			${OCUDU_ASN1_ROOT}/external/fmt/src/format.cc
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/ocudulog.cpp
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/ocudulog_c.cpp
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/backend_worker.cpp
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/event_trace.cpp
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/formatters/json_formatter.cpp
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/formatters/text_formatter.cpp
+			${CMAKE_SOURCE_DIR}/src/util/alg_ds/alg/defer.c
+			)
 set_target_properties(ocudu_rc_du_prb_control PROPERTIES OUTPUT_NAME ocudu-rc-du-prb-control)
+target_include_directories(ocudu_rc_du_prb_control
+			PUBLIC
+			${OCUDU_ASN1_ROOT}/include
+			${OCUDU_ASN1_ROOT}/external
+			${OCUDU_ASN1_ROOT}/external/fmt/include
+			${OCUDU_ASN1_ROOT}/include/ocudu/ocudulog/bundled
+			${OCUDU_ASN1_ROOT}/include/ocudu/ocudulog/formatters
+			${OCUDU_ASN1_ROOT}/lib/ocudulog
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/formatters
+			${OCUDU_ASN1_ROOT}/lib/ocudulog/sinks
+			)
 target_link_libraries(ocudu_rc_du_prb_control
-		PUBLIC
-		e42_xapp
+			PUBLIC
+			e42_xapp
 		$<TARGET_OBJECTS:e2_time_obj>
 		$<$<STREQUAL:${XAPP_DB},MYSQL_XAPP>:${LIBMYSQLCLIENT_LIBRARIES}>
 		-pthread

@@ -95,6 +95,11 @@ manifest = {
         "include/ocudu/asn1/e2sm/e2sm_ccc.h",
         "lib/asn1/e2sm/e2sm_ccc.cpp",
     ],
+    "ocudu_rc_asn_sources": [
+        "include/ocudu/asn1/e2sm/e2sm_rc_ies.h",
+        "lib/asn1/e2sm/e2sm_rc_ies.cpp",
+    ],
+    "rc_du_prb_control_encoder": "ocudu-generated-asn1-cpp",
     "ccc_prb_control_binary": "/usr/local/bin/ocudu-ccc-prb-control",
     "rc_du_prb_control_binary": "/usr/local/bin/ocudu-rc-du-prb-control",
     "xapp_db": "NONE_XAPP",

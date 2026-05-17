@@ -56,6 +56,7 @@
 #include <assert.h>
 #include <time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 
 
@@ -496,6 +497,40 @@ void send_control_request(e42_xapp_t* xapp, global_e2_node_id_t* id, ric_gen_id_
   e2ap_free_e42_ric_control_request(&e42_cr);
 }
 
+static
+void send_raw_control_request(e42_xapp_t* xapp, global_e2_node_id_t* id, ric_gen_id_t ric_req, byte_array_t hdr, byte_array_t ctrl_msg)
+{
+  assert(xapp != NULL);
+  assert(id != NULL);
+  assert(hdr.buf != NULL && hdr.len > 0);
+  assert(ctrl_msg.buf != NULL && ctrl_msg.len > 0);
+  assert(xapp->handle_msg[E42_RIC_CONTROL_REQUEST] != NULL);
+
+  ric_control_ack_req_t* ack = malloc(sizeof(ric_control_ack_req_t));
+  assert(ack != NULL && "Memory exhausted");
+  *ack = RIC_CONTROL_REQUEST_ACK;
+
+  ric_control_request_t ctrl_req = {0};
+  ctrl_req.ric_id = ric_req;
+  ctrl_req.call_process_id = NULL;
+  ctrl_req.hdr = copy_byte_array(hdr);
+  ctrl_req.msg = copy_byte_array(ctrl_msg);
+  ctrl_req.ack_req = ack;
+
+  e42_ric_control_request_t e42_cr = { .xapp_id = xapp->id,
+                                       .id = cp_global_e2_node_id(id),
+                                       .ctrl_req = ctrl_req
+                                      };
+
+  e2ap_msg_t msg = {.type = E42_RIC_CONTROL_REQUEST,
+                    .u_msgs.e42_ric_ctrl_req = e42_cr
+                    };
+
+  xapp->handle_msg[E42_RIC_CONTROL_REQUEST](xapp, &msg);
+
+  e2ap_free_e42_ric_control_request(&e42_cr);
+}
+
 sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, uint16_t ran_func_id, void* ctrl_msg)
 {
   assert(xapp != NULL);
@@ -519,6 +554,30 @@ sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, ui
   rm_act_proc(&xapp->act_proc, ric_id.ric_req_id ); 
  
   sm_ans_xapp_t const ans = {0};
+  return ans;
+}
+
+sm_ans_xapp_t control_sm_raw_sync_xapp(
+    e42_xapp_t* xapp, global_e2_node_id_t* id, uint16_t ran_func_id, byte_array_t hdr, byte_array_t msg)
+{
+  assert(xapp != NULL);
+  assert(id != NULL);
+  assert(valid_ran_func_id(ran_func_id) == true);
+  assert(hdr.buf != NULL && hdr.len > 0);
+  assert(msg.buf != NULL && msg.len > 0);
+
+  ric_gen_id_t ric_id = generate_ric_gen_id(xapp, RIC_CONTROL_PROCEDURE_ACTIVE, ran_func_id, id, NULL);
+
+  send_raw_control_request(xapp, id, ric_id, hdr, msg);
+
+  cond_wait_sync_ui(&xapp->sync, xapp->sync.wait_ms);
+
+  printf("[xApp]: Successfully received RAW CONTROL-ACK \n");
+
+  rm_act_proc(&xapp->act_proc, ric_id.ric_req_id );
+
+  sm_ans_xapp_t ans = {0};
+  ans.success = true;
   return ans;
 }
 

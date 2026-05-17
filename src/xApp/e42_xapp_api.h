@@ -33,6 +33,7 @@ extern "C" {
 #include "../lib/msg_hand/e2_node_arr.h"
 #include "../sm/agent_if/write/sm_ag_if_wr.h"
 #include "../sm/agent_if/read/sm_ag_if_rd.h"
+#include "../util/byte_array.h"
 #include "../util/conf_file.h"
 
 
@@ -77,9 +78,11 @@ void rm_report_sm_xapp_api(int const handle);
 // return void but sm_ag_if_ans_ctrl_t should be returned. Add it in the future if needed
 sm_ans_xapp_t control_sm_xapp_api(global_e2_node_id_t* id, uint32_t rf_id, void* wr);
 
+// Send a control message whose E2SM header/message payloads are already encoded.
+sm_ans_xapp_t control_sm_raw_xapp_api(global_e2_node_id_t* id, uint32_t rf_id, byte_array_t hdr, byte_array_t msg);
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

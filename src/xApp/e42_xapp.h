@@ -128,7 +128,10 @@ void rm_report_sm_sync_xapp(e42_xapp_t* xapp, int handle);
 // We wait for the message to come back and avoid asyncronous programming
 sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, uint16_t ran_func_id, void* ctrl_msg);
 
+// Send a control request with pre-encoded E2SM control header and message payloads.
+sm_ans_xapp_t control_sm_raw_sync_xapp(
+    e42_xapp_t* xapp, global_e2_node_id_t* id, uint16_t ran_func_id, byte_array_t hdr, byte_array_t msg);
+
 #undef HANDLE_MSG_NUM
 
 #endif
-
