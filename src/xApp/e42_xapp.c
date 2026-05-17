@@ -545,15 +545,22 @@ sm_ans_xapp_t control_sm_sync_xapp(e42_xapp_t* xapp, global_e2_node_id_t* id, ui
   send_control_request(xapp, id, ric_id, ctrl_msg);  
 
   // Wait for the answer (it will arrive in the event loop)
-  cond_wait_sync_ui(&xapp->sync, xapp->sync.wait_ms);
+  bool const ok = cond_wait_sync_ui(&xapp->sync, xapp->sync.wait_ms);
 
-  // Answer received
-  printf("[xApp]: Successfully received CONTROL-ACK \n");
+  if (!ok) {
+    printf("[xApp]: CONTROL-FAILURE received: %s\n", xapp->sync.error_reason);
+  } else {
+    printf("[xApp]: Successfully received CONTROL-ACK \n");
+  }
 
   // Remove the active procedure, control request  
   rm_act_proc(&xapp->act_proc, ric_id.ric_req_id ); 
  
-  sm_ans_xapp_t const ans = {0};
+  sm_ans_xapp_t ans = {0};
+  ans.success = ok;
+  if (!ok) {
+    ans.u.reason = xapp->sync.error_reason;
+  }
   return ans;
 }
 
@@ -570,14 +577,21 @@ sm_ans_xapp_t control_sm_raw_sync_xapp(
 
   send_raw_control_request(xapp, id, ric_id, hdr, msg);
 
-  cond_wait_sync_ui(&xapp->sync, xapp->sync.wait_ms);
+  bool const ok = cond_wait_sync_ui(&xapp->sync, xapp->sync.wait_ms);
 
-  printf("[xApp]: Successfully received RAW CONTROL-ACK \n");
+  if (!ok) {
+    printf("[xApp]: RAW CONTROL-FAILURE received: %s\n", xapp->sync.error_reason);
+  } else {
+    printf("[xApp]: Successfully received RAW CONTROL-ACK \n");
+  }
 
   rm_act_proc(&xapp->act_proc, ric_id.ric_req_id );
 
   sm_ans_xapp_t ans = {0};
-  ans.success = true;
+  ans.success = ok;
+  if (!ok) {
+    ans.u.reason = xapp->sync.error_reason;
+  }
   return ans;
 }
 

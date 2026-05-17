@@ -92,6 +92,41 @@ void rm_pending_event_xapp(e42_xapp_t* xapp, pending_event_xapp_t* ev)
   defer({ free(fd); } );
 }
 
+static
+int cause_value(const cause_t* cause)
+{
+  assert(cause != NULL);
+  switch (cause->present) {
+    case CAUSE_RICREQUEST:
+      return cause->ricRequest;
+    case CAUSE_RICSERVICE:
+      return cause->ricService;
+    case CAUSE_TRANSPORT:
+      return cause->transport;
+    case CAUSE_PROTOCOL:
+      return cause->protocol;
+    case CAUSE_MISC:
+      return cause->misc;
+    case CAUSE_NOTHING:
+    default:
+      return -1;
+  }
+}
+
+static
+void format_control_failure_reason(const ric_control_failure_t* fail, char* out, size_t out_len)
+{
+  assert(fail != NULL);
+  assert(out != NULL);
+  snprintf(out,
+           out_len,
+           "RIC_CONTROL_FAILURE cause_present=%d cause_value=%d ric_req_id=%u ran_func_id=%u",
+           fail->cause.present,
+           cause_value(&fail->cause),
+           fail->ric_id.ric_req_id,
+           fail->ric_id.ran_func_id);
+}
+
 void init_handle_msg_xapp(size_t len, e2ap_handle_msg_fp_xapp (*handle_msg)[len])
 {
   assert(len == NONE_E2_MSG_TYPE);
@@ -322,7 +357,18 @@ sm_ind_data_t ind_sm_payload(ric_indication_t const* src)
   assert(xapp != NULL);
   assert(msg != NULL);
   assert(msg->type == RIC_CONTROL_FAILURE);
-  assert(0!=0 && "not implemented" );
+
+  ric_control_failure_t const* fail = &msg->u_msgs.ric_ctrl_fail;
+  act_proc_ans_t rv = find_act_proc(&xapp->act_proc, fail->ric_id.ric_req_id);
+  if (rv.ok == true) {
+    pending_event_xapp_t ev = {.ev = E42_RIC_CONTROL_REQUEST_PENDING_EVENT, .id = rv.val.id};
+    rm_pending_event_xapp(xapp, &ev);
+  }
+
+  char reason[256] = {0};
+  format_control_failure_reason(fail, reason, sizeof(reason));
+  printf("[xApp]: CONTROL FAILURE received: %s\n", reason);
+  signal_error_sync_ui(&xapp->sync, reason);
 
   e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE};
   return ans;

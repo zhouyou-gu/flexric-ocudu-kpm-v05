@@ -127,10 +127,17 @@ int main(int argc, char* argv[])
   ccc_ctrl_req_data_t ccc_ctrl = {.ctrl_hdr_json = hdr_json, .ctrl_msg_json = msg_json};
   int64_t start = time_now_us();
   size_t target_count = 0;
+  bool control_failed = false;
+  char control_error[256] = {0};
   for (size_t i = 0; i < nodes.len; ++i) {
     if (!E2AP_NODE_IS_DU(nodes.n[i].id.type) || !node_supports_ran_function(&nodes.n[i], SM_CCC_ID))
       continue;
-    control_sm_xapp_api(&nodes.n[i].id, SM_CCC_ID, &ccc_ctrl);
+    sm_ans_xapp_t ans = control_sm_xapp_api(&nodes.n[i].id, SM_CCC_ID, &ccc_ctrl);
+    if (!ans.success) {
+      snprintf(control_error, sizeof(control_error), "%s", ans.u.reason != NULL ? ans.u.reason : "E2SM-CCC control failed");
+      control_failed = true;
+      break;
+    }
     ++target_count;
   }
   int64_t elapsed_us = time_now_us() - start;
@@ -143,6 +150,10 @@ int main(int argc, char* argv[])
   if (target_count == 0) {
     ocudu_print_error_json("SET_PRB_POLICY_RATIO_CCC", "no DU E2 node advertises E2SM-CCC");
     return 3;
+  }
+  if (control_failed) {
+    ocudu_print_error_json("SET_PRB_POLICY_RATIO_CCC", control_error);
+    return 4;
   }
 
   ocudu_print_success_json(

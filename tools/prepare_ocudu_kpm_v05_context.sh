@@ -35,6 +35,12 @@ if [ -n "$missing" ]; then
   exit 2
 fi
 
+rm -rf \
+  "$BUILD_CONTEXT/ocudu-asn1/include" \
+  "$BUILD_CONTEXT/ocudu-asn1/external" \
+  "$BUILD_CONTEXT/ocudu-asn1/lib/asn1" \
+  "$BUILD_CONTEXT/ocudu-asn1/lib/support" \
+  "$BUILD_CONTEXT/ocudu-asn1/lib/ocudulog"
 mkdir -p "$BUILD_CONTEXT/flexric" "$BUILD_CONTEXT/ocudu-asn1/lib"
 
 rsync -a --delete \

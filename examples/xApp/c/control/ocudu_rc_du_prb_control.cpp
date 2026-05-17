@@ -14,6 +14,7 @@ extern "C" {
 }
 
 #include <cassert>
+#include <cstdio>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -222,15 +223,22 @@ int main(int argc, char* argv[])
 
   int64_t start = time_now_us();
   size_t  target_count = 0;
+  bool    control_failed = false;
+  char    control_error[256] = {};
   for (size_t i = 0; i < nodes.len; ++i) {
     if (!E2AP_NODE_IS_DU(nodes.n[i].id.type) || !node_supports_ran_function(&nodes.n[i], SM_RC_ID)) {
       continue;
     }
     byte_array_t hdr_ba = vector_to_byte_array(ctrl_hdr);
     byte_array_t msg_ba = vector_to_byte_array(ctrl_msg);
-    control_sm_raw_xapp_api(&nodes.n[i].id, SM_RC_ID, hdr_ba, msg_ba);
+    sm_ans_xapp_t ans = control_sm_raw_xapp_api(&nodes.n[i].id, SM_RC_ID, hdr_ba, msg_ba);
     free_byte_array(hdr_ba);
     free_byte_array(msg_ba);
+    if (!ans.success) {
+      std::snprintf(control_error, sizeof(control_error), "%s", ans.u.reason != nullptr ? ans.u.reason : "E2SM-RC control failed");
+      control_failed = true;
+      break;
+    }
     ++target_count;
   }
   int64_t elapsed_us = time_now_us() - start;
@@ -243,6 +251,10 @@ int main(int argc, char* argv[])
   if (target_count == 0) {
     ocudu_print_error_json("SET_PRB_POLICY_RATIO_RC_DU", "no DU E2 node advertises E2SM-RC");
     return 3;
+  }
+  if (control_failed) {
+    ocudu_print_error_json("SET_PRB_POLICY_RATIO_RC_DU", control_error);
+    return 4;
   }
 
   ocudu_print_success_json("SET_PRB_POLICY_RATIO_RC_DU",

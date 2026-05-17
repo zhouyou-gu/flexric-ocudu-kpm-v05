@@ -25,6 +25,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdio.h>
 
 void init_sync_ui(sync_ui_t* s)
 {
@@ -46,6 +47,8 @@ void init_sync_ui(sync_ui_t* s)
 
   s->flag_sync = false;
   s->msg_ack = false;
+  s->msg_error = false;
+  s->error_reason[0] = '\0';
 }
 
 void free_sync_ui(sync_ui_t* s)
@@ -61,7 +64,7 @@ void free_sync_ui(sync_ui_t* s)
   assert(rc == 0);
 }
 
-void cond_wait_sync_ui(sync_ui_t* s, uint32_t wait_ms)
+bool cond_wait_sync_ui(sync_ui_t* s, uint32_t wait_ms)
 {
   assert(s != NULL);
   assert(wait_ms > 0);
@@ -70,6 +73,8 @@ void cond_wait_sync_ui(sync_ui_t* s, uint32_t wait_ms)
 
   s->flag_sync = false;
   s->msg_ack = false;
+  s->msg_error = false;
+  s->error_reason[0] = '\0';
   struct timespec ts = {0};
   int rc = clock_gettime(CLOCK_REALTIME, &ts);
   assert(rc == 0);
@@ -82,9 +87,10 @@ void cond_wait_sync_ui(sync_ui_t* s, uint32_t wait_ms)
   assert(rc != ETIMEDOUT && "Timeout. No response from the E2 Node received, and neither from epoll. Unforeseen path");
   assert(rc == 0);
 
+  bool const ok = s->msg_ack == true && s->msg_error == false;
   pthread_mutex_unlock(&s->mtx_sync);
 
-  assert(s->msg_ack == true && "No response to subscription from the RIC received\n" );
+  return ok;
 }
 
 void signal_sync_ui(sync_ui_t* s)
@@ -94,6 +100,19 @@ void signal_sync_ui(sync_ui_t* s)
   lock_guard(&s->mtx_sync);
   s->flag_sync = true;
   s->msg_ack = true;
-  pthread_cond_signal(&s->cv_sync); 
+  s->msg_error = false;
+  s->error_reason[0] = '\0';
+  pthread_cond_signal(&s->cv_sync);
 }
 
+void signal_error_sync_ui(sync_ui_t* s, const char* reason)
+{
+  assert(s != NULL);
+
+  lock_guard(&s->mtx_sync);
+  s->flag_sync = true;
+  s->msg_ack = false;
+  s->msg_error = true;
+  snprintf(s->error_reason, sizeof(s->error_reason), "%s", reason != NULL ? reason : "E2 control failure");
+  pthread_cond_signal(&s->cv_sync);
+}

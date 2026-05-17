@@ -33,15 +33,18 @@ typedef struct{
   int wait_ms;
   bool flag_sync; // = false;
   bool msg_ack; // = false;
+  bool msg_error; // = false;
+  char error_reason[256];
 } sync_ui_t;
 
 void init_sync_ui(sync_ui_t* s);
 
 void free_sync_ui(sync_ui_t* s);
 
-void cond_wait_sync_ui(sync_ui_t* s, uint32_t ms);
+bool cond_wait_sync_ui(sync_ui_t* s, uint32_t ms);
 
 void signal_sync_ui(sync_ui_t* s); 
 
-#endif
+void signal_error_sync_ui(sync_ui_t* s, const char* reason);
 
+#endif
