@@ -2,6 +2,7 @@
 
 #include "../../../../src/sm/ccc_sm/ccc_sm_id.h"
 #include "../../../../src/sm/ccc_sm/ccc_sm_ric.h"
+#include "../../../../src/util/e2ap_ngran_types.h"
 #include "../../../../src/util/time_now_us.h"
 #include "../../../../src/xApp/e42_xapp_api.h"
 
@@ -83,6 +84,15 @@ static void stop_xapp(void)
   }
 }
 
+static bool node_supports_ran_function(const e2_node_connected_t* node, int ran_function_id)
+{
+  for (size_t i = 0; i < node->len_rf; ++i) {
+    if (node->ack_rf[i].id == ran_function_id)
+      return true;
+  }
+  return false;
+}
+
 int main(int argc, char* argv[])
 {
   ocudu_prb_args_t bench_args = {0};
@@ -116,8 +126,12 @@ int main(int argc, char* argv[])
 
   ccc_ctrl_req_data_t ccc_ctrl = {.ctrl_hdr_json = hdr_json, .ctrl_msg_json = msg_json};
   int64_t start = time_now_us();
+  size_t target_count = 0;
   for (size_t i = 0; i < nodes.len; ++i) {
+    if (!E2AP_NODE_IS_DU(nodes.n[i].id.type) || !node_supports_ran_function(&nodes.n[i], SM_CCC_ID))
+      continue;
     control_sm_xapp_api(&nodes.n[i].id, SM_CCC_ID, &ccc_ctrl);
+    ++target_count;
   }
   int64_t elapsed_us = time_now_us() - start;
   (void)elapsed_us;
@@ -125,6 +139,11 @@ int main(int argc, char* argv[])
   free_e2_node_arr(&nodes);
   stop_xapp();
   free_fr_args(&fr_args);
+
+  if (target_count == 0) {
+    ocudu_print_error_json("SET_PRB_POLICY_RATIO_CCC", "no DU E2 node advertises E2SM-CCC");
+    return 3;
+  }
 
   ocudu_print_success_json(
       "SET_PRB_POLICY_RATIO_CCC",
