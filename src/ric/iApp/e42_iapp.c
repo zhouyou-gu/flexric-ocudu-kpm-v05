@@ -296,6 +296,7 @@ void notify_msg_iapp(e42_iapp_t* iapp, e2ap_msg_t const* msg)
       || msg->type == RIC_SUBSCRIPTION_RESPONSE 
       || msg->type == RIC_SUBSCRIPTION_DELETE_RESPONSE
       || msg->type == RIC_CONTROL_ACKNOWLEDGE
+      || msg->type == RIC_CONTROL_FAILURE
       || msg->type == E2_SETUP_RESPONSE);
 
 
