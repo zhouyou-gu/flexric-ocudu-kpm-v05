@@ -1281,7 +1281,7 @@ e2ap_msg_t e2ap_dec_control_failure(const E2AP_PDU_t* pdu)
 {
   assert(pdu != NULL);
 
-  assert(0!=0 && "Untested code");
+  // Patched 2026-05-25: removed unconditional assert; the decoder body below
 
   e2ap_msg_t ret = {.type = RIC_CONTROL_FAILURE};
   ric_control_failure_t* cf = &ret.u_msgs.ric_ctrl_fail;
