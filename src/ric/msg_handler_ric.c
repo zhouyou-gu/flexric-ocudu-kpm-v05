@@ -367,9 +367,21 @@ void publish_ind_msg(near_ric_t* ric,  uint16_t ran_func_id, sm_ag_if_rd_ind_t* 
   assert(ric != NULL);
   assert(msg != NULL);
   assert(msg->type == RIC_CONTROL_FAILURE);
-  assert(0!=0 && "not implemented" );
 
-  e2ap_msg_t ans = {0};
+  // Patched 2026-05-25: mirror e2ap_handle_control_ack_ric so the RIC
+  // forwards Control Failure responses to the iApp/xApp instead of
+  // asserting. Together with the decoder patch (e2ap_msg_dec_asn.c:1284)
+  // this lets the xApp receive a structured accepted=false ack.
+  ric_control_failure_t const* cf = &msg->u_msgs.ric_ctrl_fail;
+  pending_event_ric_t ev = {.ev = CONTROL_REQUEST_PENDING_EVENT, .id = cf->ric_id};
+  stop_pending_event(ric, &ev);
+  printf("[NEAR-RIC]: CONTROL FAILURE received\n");
+
+#ifndef TEST_AGENT_RIC
+  notify_msg_iapp_api(msg);
+#endif
+
+  e2ap_msg_t ans = {.type = NONE_E2_MSG_TYPE};
   return ans;
 }
   
